@@ -85,19 +85,19 @@ add_library(astra_wrapper
 )
 target_link_libraries(astra_wrapper ${catkin_LIBRARIES} -lOpenNI2  -L${ORRBEC_OPENNI2_REDIST}
   ${Boost_LIBRARIES} )
-add_dependencies(astra_wrapper ${catkin_EXPORTED_TARGETS})
+add_dependencies(astra_wrapper ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(astra_driver_lib
                 src/astra_driver.cpp
 )
 target_link_libraries(astra_driver_lib astra_wrapper ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
-add_dependencies(astra_driver_lib ${PROJECT_NAME}_gencfg)
+add_dependencies(astra_driver_lib ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
 
 add_library(astra_camera_nodelet
    ros/astra_camera_nodelet.cpp
 )
 target_link_libraries(astra_camera_nodelet astra_driver_lib ${catkin_LIBRARIES} ${Boost_LIBRARIES} )
-add_dependencies(astra_camera_nodelet ${PROJECT_NAME}_gencfg)
+add_dependencies(astra_camera_nodelet ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
 
 add_executable(astra_camera_node
    ros/astra_camera_node.cpp
