@@ -59,8 +59,13 @@
 #include "astra_camera/GetIRExposure.h"
 #include "astra_camera/SetIRExposure.h"
 #include "astra_camera/SetLaser.h"
+#include "astra_camera/SetLDP.h"
 #include "astra_camera/ResetIRGain.h"
 #include "astra_camera/ResetIRExposure.h"
+#include "astra_camera/GetCameraInfo.h"
+#include "astra_camera/SetIRFlood.h"
+#include "astra_camera/SwitchIRCamera.h"
+#include <astra_camera/astra_device_type.h>
 
 #include <ros/ros.h>
 
@@ -71,6 +76,7 @@ class AstraDriver
 {
 public:
   AstraDriver(ros::NodeHandle& n, ros::NodeHandle& pnh) ;
+  ~AstraDriver();
 
 private:
   typedef astra_camera::AstraConfig Config;
@@ -86,11 +92,12 @@ private:
   sensor_msgs::CameraInfoPtr getIRCameraInfo(int width, int height, ros::Time time) const;
   sensor_msgs::CameraInfoPtr getDepthCameraInfo(int width, int height, ros::Time time) const;
   sensor_msgs::CameraInfoPtr getProjectorCameraInfo(int width, int height, ros::Time time) const;
+  sensor_msgs::CameraInfo convertAstraCameraInfo(OBCameraParams p, ros::Time time) const;
 
   void readConfigFromParameterServer();
 
   // resolves non-URI device IDs to URIs, e.g. '#1' is resolved to the URI of the first device
-  std::string resolveDeviceURI(const std::string& device_id) throw(AstraException);
+  std::string resolveDeviceURI(const std::string& device_id);
   void initDevice();
 
   void advertiseROSTopics();
@@ -107,6 +114,10 @@ private:
   bool setLaserCb(astra_camera::SetLaserRequest& req, astra_camera::SetLaserResponse& res);
   bool resetIRGainCb(astra_camera::ResetIRGainRequest& req, astra_camera::ResetIRGainResponse& res);
   bool resetIRExposureCb(astra_camera::ResetIRExposureRequest& req, astra_camera::ResetIRExposureResponse& res);
+  bool getCameraInfoCb(astra_camera::GetCameraInfoRequest& req, astra_camera::GetCameraInfoResponse& res);
+  bool setIRFloodCb(astra_camera::SetIRFloodRequest& req, astra_camera::SetIRFloodResponse& res);
+  bool switchIRCameraCb(astra_camera::SwitchIRCameraRequest& req, astra_camera::SwitchIRCameraResponse& res);
+  bool setLDPCb(astra_camera::SetLDPRequest& req, astra_camera::SetLDPResponse& res);
 
   void configCb(Config &config, uint32_t level);
 
@@ -130,15 +141,19 @@ private:
   std::string device_id_;
 
   /** \brief get_serial server*/
+  ros::ServiceServer get_camera_info;
   ros::ServiceServer get_serial_server;
   ros::ServiceServer get_device_type_server;
   ros::ServiceServer get_ir_gain_server;
   ros::ServiceServer set_ir_gain_server;
   ros::ServiceServer get_ir_exposure_server;
   ros::ServiceServer set_ir_exposure_server;
+  ros::ServiceServer set_ir_flood_server;
   ros::ServiceServer set_laser_server;
+  ros::ServiceServer set_ldp_server;
   ros::ServiceServer reset_ir_gain_server;
   ros::ServiceServer reset_ir_exposure_server;
+  ros::ServiceServer switch_ir_camera;
 
   /** \brief reconfigure server*/
   boost::shared_ptr<ReconfigureServer> reconfigure_server_;
@@ -201,6 +216,7 @@ private:
   bool use_device_time_;
 
   Config old_config_;
+  int uvc_flip_;
 };
 
 }
